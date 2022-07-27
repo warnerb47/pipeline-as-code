@@ -7,63 +7,70 @@ terraform {
   }
 }
 
+# load config file
+locals {
+  input_file         = "./config.yml"
+  input_file_content = fileexists(local.input_file) ? file(local.input_file) : "NoInputFileFound: true"
+  input              = yamldecode(local.input_file_content)
+}
+
 
 # Configure the Bitbucket Provider
 provider "bitbucket" {
-  username = "warnerb47"
-  password = "zbCPtWL5trj8gvnsbJBe" # you can also use app passwords
+  username = local.input.access.username
+  password = local.input.access.password 
 }
 
 
 data "bitbucket_workspace" "workspace_selected" {
-  workspace = "personnal"
+  workspace = local.input.workspace.workspaceID
 }
 
-resource "bitbucket_project" "terraform_project" {
-  owner = "warnerb47"
-  name  = "terraform"
-  key   = "terraform"
-  description = "automate project, repositories and pipeline creation with terraform"
-  is_private = false
-}
+# resource "bitbucket_project" "terraform_project" {
+#   owner = "warnerb47"
+#   name  = "terraform"
+#   key   = "terraform"
+#   description = "automate project, repositories and pipeline creation with terraform"
+#   is_private = false
+# }
 
 
-resource "bitbucket_repository" "terraform_repository" {
-  owner = "warnerb47"
-  name  = "terraformcode"
-  is_private = false
-  description = "this repository has been created with terraform"
-  pipelines_enabled = true
-  project_key = "terraform"
-}
+# resource "bitbucket_repository" "terraform_repository" {
+#   owner = "warnerb47"
+#   name  = "terraformcode"
+#   is_private = false
+#   description = "this repository has been created with terraform"
+#   pipelines_enabled = true
+#   project_key = "terraform"
+# }
 
 
-resource "bitbucket_repository_variable" "debug" {
-  key        = "DEBUG"
-  value      = "true"
-  repository = "${bitbucket_repository.terraform_repository.id}"
-  secured    = false
-}
+# resource "bitbucket_repository_variable" "debug" {
+#   key        = "DEBUG"
+#   value      = "true"
+#   repository = "${bitbucket_repository.terraform_repository.id}"
+#   secured    = false
+# }
 
-resource "bitbucket_deployment" "test" {
-  repository = "${bitbucket_repository.terraform_repository.id}"
-  name       = "test"
-  stage      = "Test"
-}
-resource "bitbucket_deployment_variable" "port" {
-  deployment = "${bitbucket_deployment.test.id}"
-  key       = "PORT"
-  value      = "5000"
-  secured    = false
-}
+# resource "bitbucket_deployment" "test" {
+#   repository = "${bitbucket_repository.terraform_repository.id}"
+#   name       = "test"
+#   stage      = "Test"
+# }
+# resource "bitbucket_deployment_variable" "port" {
+#   deployment = "${bitbucket_deployment.test.id}"
+#   key       = "PORT"
+#   value      = "5000"
+#   secured    = false
+# }
 
 
-resource "bitbucket_pipeline_ssh_key" "terraform_ssh_key" {
-  workspace  = "${data.bitbucket_workspace.workspace_selected.id}"
-  repository = "${bitbucket_repository.terraform_repository.id}"  
-  public_key  = "public_key"
-  private_key = "test-key"
-}
+# resource "bitbucket_pipeline_ssh_key" "terraform_ssh_key" {
+#   workspace  = "${data.bitbucket_workspace.workspace_selected.id}"
+#   repository = "${bitbucket_repository.terraform_repository.id}"  
+#   public_key  = "public_key"
+#   private_key = "test-key"
+# }
 
 # resource "bitbucket_pipeline_ssh_known_host" "test" {
 #   workspace  = "${data.bitbucket_workspace.workspace_selected.id}"
